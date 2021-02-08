@@ -43,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // createindex: 1) field name 2) keypath 3) options
     objectStore.createIndex("taskname", "taskname", { unique: false });
 
-
     console.log("Database ready and fields created!");
   };
 
@@ -51,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function addNewTask(e) {
     e.preventDefault(); //the rest of code
     // Add to DB
-    let newTask = { taskname: taskInput.value };
+    let newTask = { taskname: taskInput.value, date: new Date() };
 
     let transaction = DB.transaction(["tasks"], "readwrite");
     let objectStore = transaction.objectStore("tasks");
@@ -142,4 +141,94 @@ document.addEventListener("DOMContentLoaded", () => {
     displayTaskList();
     console.log("Tasks Cleared !!!");
   }
+
+  function displayDescendSort() {
+    // clear the previous task list
+    while (taskList.firstChild) {
+      taskList.removeChild(taskList.firstChild);
+    }
+
+    // create the object store
+    let objectStore = DB.transaction("tasks").objectStore("tasks");
+
+    let currentDate = Date.now();
+    objectStore.openCursor().onsuccess = function (e) {
+      // assign the current cursor
+      let cursor = e.target.result;
+
+      if (cursor) {
+        // Create an li element when the user adds a task
+        const li = document.createElement("li");
+        //add Attribute for delete
+        li.setAttribute("data-task-id", cursor.value.id);
+        // Adding a class
+        li.className = "collection-item";
+        // Create text node and append it
+        li.appendChild(document.createTextNode(cursor.value.taskname));
+        // Create new element for the link
+        const link = document.createElement("a");
+        // Add class and the x marker for a
+        link.className = "delete-item secondary-content";
+        link.innerHTML = `
+            <i class="fa fa-remove"></i>
+           &nbsp;
+           <a href="edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
+           `;
+        // Append link to li
+        li.appendChild(link);
+        // Append to UL
+        taskList.appendChild(li);
+
+        cursor.continue();
+      }
+    };
+  }
+
+  function displayAscendSort() {
+    // clear the previous task list
+    while (taskList.firstChild) {
+      taskList.removeChild(taskList.firstChild);
+    }
+
+    // create the object store
+    let objectStore = DB.transaction("tasks").objectStore("tasks");
+
+    let currentDate = Date.now();
+    objectStore.openCursor().onsuccess = function (e) {
+      // assign the current cursor
+      let cursor = e.target.result;
+
+      if (cursor) {
+        // Create an li element when the user adds a task
+        const li = document.createElement("li");
+        //add Attribute for delete
+        li.setAttribute("data-task-id", cursor.value.id);
+        // Adding a class
+        li.className = "collection-item";
+        // Create text node and append it
+        li.appendChild(document.createTextNode(cursor.value.taskname));
+        // Create new element for the link
+        const link = document.createElement("a");
+        // Add class and the x marker for a
+        link.className = "delete-item secondary-content";
+        link.innerHTML = `
+            <i class="fa fa-remove"></i>
+           &nbsp;
+           <a href="edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
+           `;
+        // Append link to li
+        li.appendChild(link);
+        // Append to UL
+        // taskList.appendChild(li);
+        taskList.insertBefore(li, taskList.firstChild);
+
+        cursor.continue();
+      }
+    };
+  }
+
+  const ascendingBtn = document.querySelector(".ascending-btn");
+  const descendingBtn = document.querySelector(".descending-btn");
+  descendingBtn.addEventListener("click", displayDescendSort);
+  ascendingBtn.addEventListener("click", displayAscendSort);
 });
